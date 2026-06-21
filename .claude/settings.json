@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(composer create-project \"laravel/laravel:^11.0\" Backend --no-interaction --prefer-dist)",
+      "PowerShell(composer require laravel/sanctum --working-dir=Backend --no-interaction)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(php -r 'try { $p = new PDO\\(\"mysql:host=127.0.0.1;port=3306\", \"root\", \"\"\\); $p->exec\\(\"CREATE DATABASE IF NOT EXISTS image_gen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci\"\\); echo \"DB_OK\\\\n\"; } catch \\(Throwable $e\\) { echo \"DB_ERR: \".$e->getMessage\\(\\).\"\\\\n\"; }')",
+      "Bash(php artisan *)",
+      "Bash(php -r 'echo \"curl.cainfo=[\".ini_get\\(\"curl.cainfo\"\\).\"]\\\\n\"; echo \"openssl.cafile=[\".ini_get\\(\"openssl.cafile\"\\).\"]\\\\n\";')",
+      "Bash(php -r '$c=curl_init\\(\"https://api.anthropic.com/v1/models\"\\); curl_setopt\\($c,CURLOPT_RETURNTRANSFER,1\\); $r=curl_exec\\($c\\); $e=curl_error\\($c\\); echo $e ? \"CURL_ERR: $e\\\\n\" : \"SSL_OK http=\".curl_getinfo\\($c,CURLINFO_HTTP_CODE\\).\"\\\\n\";')",
+      "Bash(php -r '$c=curl_init\\(\"https://generativelanguage.googleapis.com/v1beta/models\"\\); curl_setopt\\($c,CURLOPT_RETURNTRANSFER,1\\); $r=curl_exec\\($c\\); $e=curl_error\\($c\\); echo $e ? \"CURL_ERR: $e\\\\n\" : \"SSL_OK http=\".curl_getinfo\\($c,CURLINFO_HTTP_CODE\\).\"\\\\n\";')",
+      "Bash(php list_models.php)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\faisa\\OneDrive\\Desktop\\Image generation tool\\Backend"
+    ]
+  }
+}

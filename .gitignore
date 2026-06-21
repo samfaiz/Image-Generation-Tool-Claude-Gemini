@@ -1,0 +1,18 @@
+@'
+# Dependencies / build artifacts (also covered by nested .gitignore files)
+**/vendor/
+**/node_modules/
+**/.next/
+**/dist/
+
+# Secrets & environment
+**/.env
+**/.env.*.local
+*.pem
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+'@ | Set-Content -Path ".gitignore" -Encoding ascii

@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/*
+  Tailwind v4 — CSS-first config. Tokens declared in @theme become utilities
+  (e.g. --color-panel -> bg-panel / text-panel / border-panel).
+  This is a forced, minimalist, flat dark theme (no gradients/heavy shadows).
+*/
+@theme {
+  --color-ink: #0a0a0b;        /* page background        */
+  --color-panel: #141416;      /* cards / surfaces       */
+  --color-elevated: #1c1c20;   /* inputs / hover         */
+  --color-line: #26262b;       /* hairline borders       */
+  --color-muted: #8a8a93;      /* secondary text         */
+  --color-accent: #6366f1;     /* indigo                 */
+  --color-accent-hover: #818cf8;
+  --color-success: #34d399;
+  --color-danger: #f87171;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius: 0.75rem;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: #e5e5e7;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thin, flat scrollbars to match the aesthetic */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
