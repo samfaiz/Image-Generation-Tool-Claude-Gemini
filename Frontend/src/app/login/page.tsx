@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError } from "@/lib/api";
-import { Alert, Button, Card, Field, TextInput } from "@/components/ui";
+import { Alert, Button, Card, Field, Logo, Pill, TextInput } from "@/components/ui";
 
 type Mode = "login" | "register";
 
@@ -47,11 +47,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-mesh">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-xl font-semibold text-neutral-100 tracking-tight">AI Image Studio</h1>
-          <p className="text-sm text-muted mt-1">Claude engineers the prompt. Gemini paints it.</p>
+        <div className="flex flex-col items-center mb-8">
+          <div className="mb-4">
+            <Logo size="lg" />
+          </div>
+          <Pill className="mb-4">Dual-AI image generation</Pill>
+          <h1 className="text-2xl font-semibold text-text tracking-tight font-display text-center">
+            Type it. <span className="text-accent">Paint it.</span>
+          </h1>
+          <p className="text-sm text-muted mt-2 text-center">Claude engineers the prompt. Gemini paints it.</p>
         </div>
 
         <Card className="p-6">
@@ -64,7 +70,7 @@ export default function LoginPage() {
                   setError(null);
                 }}
                 className={`flex-1 py-1.5 rounded-md capitalize transition-colors ${
-                  mode === m ? "bg-panel text-white" : "text-muted hover:text-white"
+                  mode === m ? "bg-panel text-text" : "text-muted hover:text-text"
                 }`}
               >
                 {m === "login" ? "Sign in" : "Create account"}
@@ -120,7 +126,7 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted mt-6">
-          Demo user: <span className="text-neutral-400">user@example.com / password</span>
+          Demo user: <span className="text-muted">user@example.com / password</span>
         </p>
       </div>
     </div>

@@ -6,7 +6,7 @@ function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <div className="text-xs uppercase tracking-wider text-muted mb-0.5">{label}</div>
-      <div className="text-neutral-300">{value}</div>
+      <div className="text-text/85">{value}</div>
     </div>
   );
 }
@@ -18,7 +18,7 @@ function Chips({ label, items }: { label: string; items: string[] }) {
       <div className="text-xs uppercase tracking-wider text-muted mb-1.5">{label}</div>
       <div className="flex flex-wrap gap-1.5">
         {items.map((item, i) => (
-          <span key={i} className="text-xs rounded-full border border-line bg-elevated px-2.5 py-1 text-neutral-300">
+          <span key={i} className="text-xs rounded-full border border-line bg-elevated px-2.5 py-1 text-text/85">
             {item}
           </span>
         ))}
@@ -32,7 +32,7 @@ export function PromptDetails({ json }: { json: ClaudeJson }) {
     <div className="space-y-4 text-sm">
       <div>
         <div className="text-xs uppercase tracking-wider text-muted mb-1">Final prompt</div>
-        <p className="text-neutral-300 leading-relaxed">{json.final_prompt}</p>
+        <p className="text-text/85 leading-relaxed">{json.final_prompt}</p>
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         <Meta label="Style" value={json.style} />

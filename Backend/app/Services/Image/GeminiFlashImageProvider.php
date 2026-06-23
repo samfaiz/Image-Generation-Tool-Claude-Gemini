@@ -35,8 +35,42 @@ class GeminiFlashImageProvider implements ImageProviderInterface
         string $model,
         string $prompt,
         string $aspectRatio,
+        int $variations = 1,
         ?string $referenceImageBase64 = null,
         ?string $referenceMime = null
+    ): array {
+        $variations = max(1, min(4, $variations));
+        $out = [];
+        $lastError = null;
+
+        // Flash Image doesn't expose a sampleCount; produce variations with N
+        // sequential calls. Each call independently samples so outputs diverge.
+        for ($i = 0; $i < $variations; $i++) {
+            try {
+                $out[] = $this->generateOne($apiKey, $model, $prompt, $aspectRatio, $referenceImageBase64, $referenceMime);
+            } catch (RuntimeException $e) {
+                $lastError = $e;
+                // Tolerate partial failures only if we already have something.
+                if (empty($out)) {
+                    throw $e;
+                }
+            }
+        }
+
+        if (empty($out) && $lastError) {
+            throw $lastError;
+        }
+
+        return $out;
+    }
+
+    private function generateOne(
+        string $apiKey,
+        string $model,
+        string $prompt,
+        string $aspectRatio,
+        ?string $referenceImageBase64,
+        ?string $referenceMime
     ): array {
         $url = config('services.gemini.base_url')."/models/{$model}:generateContent";
 
@@ -73,7 +107,6 @@ class GeminiFlashImageProvider implements ImageProviderInterface
             );
         }
 
-        // Find the first inline image part in the first candidate.
         $partsOut = $response->json('candidates.0.content.parts') ?? [];
         foreach ($partsOut as $part) {
             if (isset($part['inlineData']['data'])) {

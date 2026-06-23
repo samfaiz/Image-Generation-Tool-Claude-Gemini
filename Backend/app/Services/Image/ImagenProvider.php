@@ -34,19 +34,21 @@ class ImagenProvider implements ImageProviderInterface
         string $model,
         string $prompt,
         string $aspectRatio,
+        int $variations = 1,
         ?string $referenceImageBase64 = null,
         ?string $referenceMime = null
     ): array {
         $url = config('services.gemini.base_url')."/models/{$model}:predict";
+        $sampleCount = max(1, min(4, $variations));
 
         $response = Http::withHeaders(['content-type' => 'application/json'])
-            ->timeout(180)
+            ->timeout(240)
             ->post($url.'?key='.urlencode($apiKey), [
                 'instances' => [
                     ['prompt' => $prompt],
                 ],
                 'parameters' => [
-                    'sampleCount' => 1,
+                    'sampleCount' => $sampleCount,
                     'aspectRatio' => $aspectRatio,
                 ],
             ]);
@@ -57,16 +59,21 @@ class ImagenProvider implements ImageProviderInterface
             );
         }
 
-        $prediction = $response->json('predictions.0');
-        $b64 = $prediction['bytesBase64Encoded'] ?? null;
+        $predictions = $response->json('predictions') ?? [];
+        $out = [];
+        foreach ($predictions as $prediction) {
+            if (! empty($prediction['bytesBase64Encoded'])) {
+                $out[] = [
+                    'data' => base64_decode($prediction['bytesBase64Encoded']),
+                    'mime' => $prediction['mimeType'] ?? 'image/png',
+                ];
+            }
+        }
 
-        if (! $b64) {
+        if (empty($out)) {
             throw new RuntimeException('Imagen returned no image data.');
         }
 
-        return [
-            'data' => base64_decode($b64),
-            'mime' => $prediction['mimeType'] ?? 'image/png',
-        ];
+        return $out;
     }
 }

@@ -32,7 +32,7 @@ class GenerationService
             throw new RuntimeException('No Claude API key on file. Add one in Settings.');
         }
 
-        [$refB64, $refMime] = $this->referenceImage($generation);
+        $references = $this->referenceImages($generation);
 
         try {
             $json = $this->claude->engineerPrompt(
@@ -45,8 +45,8 @@ class GenerationService
                     'reference_url' => $generation->reference_url,
                     'aspect_ratio' => $generation->aspect_ratio,
                 ],
-                referenceImageBase64: $refB64,
-                referenceMime: $refMime,
+                referenceImages: $references,
+                marketRead: is_array($generation->market_read) ? $generation->market_read : null,
             );
         } catch (Throwable $e) {
             $this->fail($generation, $e->getMessage());
@@ -64,9 +64,9 @@ class GenerationService
     }
 
     /**
-     * Phase 2 — Gemini/Imagen renders the image from the final prompt.
+     * Phase 2 — Gemini/Imagen renders 1..N variations from the final prompt.
      */
-    public function generateImage(Generation $generation, ApiCredential $credential): Generation
+    public function generateImage(Generation $generation, ApiCredential $credential, int $variations = 1): Generation
     {
         if (! $credential->hasGeminiKey()) {
             throw new RuntimeException('No Gemini API key on file. Add one in Settings.');
@@ -75,9 +75,19 @@ class GenerationService
             throw new RuntimeException('Run the prompt-engineering step first.');
         }
 
+        $variations = max(1, min(4, $variations));
+
+        // Clean up any earlier outputs on this row (re-runs from "retry").
+        foreach ($generation->allImagePaths() as $old) {
+            if ($old && Storage::disk('public')->exists($old)) {
+                Storage::disk('public')->delete($old);
+            }
+        }
+
         $generation->forceFill(['status' => Generation::STATUS_GENERATING])->save();
 
-        [$refB64, $refMime] = $this->referenceImage($generation);
+        // Gemini conditioning takes a single image — use the first reference only.
+        [$refB64, $refMime] = $this->referenceImages($generation)[0] ?? [null, null];
         $provider = $this->imageFactory->for($generation);
 
         $preferred = $provider->capability() === 'predict'
@@ -93,11 +103,12 @@ class GenerationService
                 $provider->envConfigKey(),
             );
 
-            $result = $provider->generate(
+            $results = $provider->generate(
                 apiKey: $credential->gemini_key,
                 model: $model,
                 prompt: $generation->final_prompt,
                 aspectRatio: $generation->aspect_ratio,
+                variations: $variations,
                 referenceImageBase64: $refB64,
                 referenceMime: $refMime,
             );
@@ -106,12 +117,18 @@ class GenerationService
             throw $e;
         }
 
-        $ext = str_contains($result['mime'], 'jpeg') ? 'jpg' : 'png';
-        $path = "generations/{$generation->id}.{$ext}";
-        Storage::disk('public')->put($path, $result['data']);
+        $paths = [];
+        foreach ($results as $i => $result) {
+            $ext = str_contains($result['mime'], 'jpeg') ? 'jpg' : 'png';
+            $suffix = $i === 0 ? '' : '-'.$i;
+            $path = "generations/{$generation->id}{$suffix}.{$ext}";
+            Storage::disk('public')->put($path, $result['data']);
+            $paths[] = $path;
+        }
 
         $generation->forceFill([
-            'image_path' => $path,
+            'image_path' => $paths[0] ?? null,
+            'image_paths' => $paths,
             'provider' => $provider->name(),
             'status' => Generation::STATUS_COMPLETED,
             'error' => null,
@@ -121,23 +138,26 @@ class GenerationService
     }
 
     /**
-     * @return array{0:?string,1:?string} [base64, mime]
+     * Decode every stored reference image for vision/conditioning use.
+     * Non-image references (e.g. .mp4) are skipped.
+     *
+     * @return array<int, array{0:string,1:string}>  list of [base64, mime] pairs
      */
-    private function referenceImage(Generation $generation): array
+    private function referenceImages(Generation $generation): array
     {
-        if (! $generation->reference_path || ! Storage::disk('public')->exists($generation->reference_path)) {
-            return [null, null];
+        $out = [];
+        foreach ($generation->allReferencePaths() as $path) {
+            if (! Storage::disk('public')->exists($path)) {
+                continue;
+            }
+            $mime = Storage::disk('public')->mimeType($path) ?: 'image/png';
+            if (! str_starts_with($mime, 'image/')) {
+                continue;
+            }
+            $out[] = [base64_encode(Storage::disk('public')->get($path)), $mime];
         }
 
-        $bytes = Storage::disk('public')->get($generation->reference_path);
-        $mime = Storage::disk('public')->mimeType($generation->reference_path) ?: 'image/png';
-
-        // Only feed actual images to the vision/conditioning paths.
-        if (! str_starts_with($mime, 'image/')) {
-            return [null, null];
-        }
-
-        return [base64_encode($bytes), $mime];
+        return $out;
     }
 
     private function fail(Generation $generation, string $message): void

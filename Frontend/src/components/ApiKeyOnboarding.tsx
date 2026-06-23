@@ -10,7 +10,7 @@ function KeyStatus({ label, has, last4, verified }: { label: string; has: boolea
       <span className="text-muted">{label}</span>
       {has ? (
         <span className="flex items-center gap-2">
-          <span className="font-mono text-neutral-300">····{last4}</span>
+          <span className="font-mono text-text/85">····{last4}</span>
           {verified ? (
             <span className="text-xs text-success">verified</span>
           ) : (
@@ -71,10 +71,10 @@ export function ApiKeyOnboarding({
     <div className="space-y-5">
       {showInfo && (
         <Card className="p-5">
-          <h3 className="text-sm font-medium text-neutral-100 mb-2">Why two keys?</h3>
+          <h3 className="text-sm font-medium text-text mb-2">Why two keys?</h3>
           <p className="text-sm text-muted leading-relaxed">
-            <span className="text-neutral-300">Claude</span> acts as your prompt engineer, formatting your ideas into a
-            perfect JSON structure. <span className="text-neutral-300">Gemini</span> acts as the artist, generating the
+            <span className="text-text/85">Claude</span> acts as your prompt engineer, formatting your ideas into a
+            perfect JSON structure. <span className="text-text/85">Gemini</span> acts as the artist, generating the
             image from that structure.
           </p>
         </Card>

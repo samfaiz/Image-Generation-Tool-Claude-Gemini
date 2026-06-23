@@ -38,7 +38,7 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <div className="max-w-xl mx-auto">
-        <h1 className="text-2xl font-semibold text-neutral-100 mb-1">Settings</h1>
+        <h1 className="text-2xl font-semibold text-text mb-1">Settings</h1>
         <p className="text-muted text-sm mb-6">Manage your encrypted AI provider keys.</p>
 
         {loading ? (
@@ -55,7 +55,7 @@ export default function SettingsPage() {
               <Card className="p-5 mt-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm text-neutral-200">Remove keys</div>
+                    <div className="text-sm text-text">Remove keys</div>
                     <div className="text-xs text-muted">Deletes both encrypted keys from the database.</div>
                   </div>
                   <Button variant="danger" loading={clearing} onClick={clearKeys}>

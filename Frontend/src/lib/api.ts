@@ -119,6 +119,14 @@ export type ModelCatalog = {
   generate: string[]; // Gemini Flash Image models (with reference image)
 };
 
+export type MarketRead = {
+  summary: string;
+  competitor_visuals: { name: string; common_traits: string }[];
+  visual_cliches_to_avoid: string[];
+  differentiation_angles: string[];
+  palette_direction: string;
+};
+
 export type ClaudeJson = {
   subject: string;
   style: string;
@@ -141,6 +149,7 @@ export type Generation = {
   elements: string | null;
   reference_url: string | null;
   claude_json: ClaudeJson | null;
+  market_read: MarketRead | null;
   final_prompt: string | null;
   aspect_ratio: string;
   provider: string | null;
@@ -148,7 +157,9 @@ export type Generation = {
   status: "pending" | "prompted" | "generating" | "completed" | "failed";
   error: string | null;
   has_reference: boolean;
+  reference_count: number;
   image_url: string | null;
+  image_urls: string[];
   created_at: string;
 };
 
@@ -159,14 +170,60 @@ export type Paginated<T> = {
   total: number;
 };
 
+export const MAX_REFERENCE_IMAGES = 4;
+
 export type IdeationInput = {
   idea: string;
   industry: string;
   competitors: string;
   elements?: string;
   reference_url?: string;
-  reference?: File | null;
+  /** Up to MAX_REFERENCE_IMAGES — all are passed to Claude, the first to Gemini. */
+  references?: File[];
   aspect_ratio?: string;
+  /** Optional market-research output to feed into the prompt engineer. */
+  market_read?: MarketRead;
+};
+
+export type MarketInput = {
+  idea: string;
+  industry: string;
+  competitors: string;
+  template?: string;
+  style_tags?: string[];
+  mood_tags?: string[];
+};
+
+export type ConceptSuggestion = {
+  title: string;
+  hook: string;
+  template_id: string;
+  idea: string;
+  elements: string;
+  aspect_ratio: string;
+  style_tags: string[];
+  mood_tags: string[];
+};
+
+export type InspireInput = {
+  company_name: string;
+  what_company_does: string;
+  industry?: string;
+};
+
+export type ClarifyQuestion = {
+  id: string;
+  question: string;
+  options: string[];
+};
+
+export type ClarifyInput = {
+  idea: string;
+  industry?: string;
+  competitors?: string;
+  template?: string;
+  style_tags?: string[];
+  mood_tags?: string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -210,6 +267,24 @@ export const api = {
   getModels: () => request<ModelCatalog>("/api/models"),
 
   // Generations
+  inspire: (input: InspireInput) =>
+    request<{ suggestions: ConceptSuggestion[] }>("/api/generations/inspire", {
+      method: "POST",
+      body: input,
+    }),
+
+  marketResearch: (input: MarketInput) =>
+    request<{ market_read: MarketRead }>("/api/generations/market", {
+      method: "POST",
+      body: input,
+    }),
+
+  clarifyBrief: (input: ClarifyInput) =>
+    request<{ questions: ClarifyQuestion[] }>("/api/generations/clarify", {
+      method: "POST",
+      body: input,
+    }),
+
   createGeneration: (input: IdeationInput) => {
     const form = new FormData();
     form.append("idea", input.idea);
@@ -217,13 +292,21 @@ export const api = {
     form.append("competitors", input.competitors);
     if (input.elements) form.append("elements", input.elements);
     if (input.reference_url) form.append("reference_url", input.reference_url);
-    if (input.reference) form.append("reference", input.reference);
+    for (const f of input.references ?? []) {
+      form.append("references[]", f);
+    }
     form.append("aspect_ratio", input.aspect_ratio ?? "9:16");
+    if (input.market_read) {
+      form.append("market_read", JSON.stringify(input.market_read));
+    }
     return request<Generation>("/api/generations", { method: "POST", form });
   },
 
-  generateImage: (id: number) =>
-    request<Generation>(`/api/generations/${id}/image`, { method: "POST" }),
+  generateImage: (id: number, variations = 3) =>
+    request<Generation>(`/api/generations/${id}/image`, {
+      method: "POST",
+      body: { variations },
+    }),
 
   listGenerations: () => request<Paginated<Generation>>("/api/generations"),
 

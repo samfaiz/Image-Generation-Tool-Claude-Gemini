@@ -33,7 +33,7 @@ export default function GalleryPage() {
     <AppShell>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-neutral-100">Gallery</h1>
+          <h1 className="text-2xl font-semibold text-text">Gallery</h1>
           <p className="text-muted text-sm">Your generation history.</p>
         </div>
         <Link href="/studio">
@@ -74,7 +74,7 @@ export default function GalleryPage() {
               </Link>
               <div className="p-3">
                 <Link href={`/gallery/${g.id}`}>
-                  <p className="text-xs text-neutral-300 line-clamp-2 leading-snug hover:text-white transition-colors">
+                  <p className="text-xs text-text/85 line-clamp-2 leading-snug hover:text-text transition-colors">
                     {g.idea}
                   </p>
                 </Link>

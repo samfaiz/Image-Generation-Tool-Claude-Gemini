@@ -164,22 +164,22 @@ export function WatermarkStudio({ imageUrl }: { imageUrl: string }) {
 
       <div className="space-y-5">
         <Card className="p-5 space-y-4">
-          <h3 className="text-sm font-medium text-neutral-100">Watermark Studio</h3>
+          <h3 className="text-sm font-medium text-text">Watermark Studio</h3>
 
           <label className="block">
-            <span className="block text-sm text-neutral-300 mb-1.5">Logo / watermark</span>
+            <span className="block text-sm text-text/85 mb-1.5">Logo / watermark</span>
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               onChange={onLogoFile}
-              className="block w-full text-xs text-muted file:mr-3 file:rounded-md file:border-0 file:bg-elevated file:px-3 file:py-2 file:text-sm file:text-neutral-200 hover:file:bg-white/10"
+              className="block w-full text-xs text-muted file:mr-3 file:rounded-md file:border-0 file:bg-elevated file:px-3 file:py-2 file:text-sm file:text-text hover:file:bg-white/10"
             />
             <span className="block text-xs text-muted mt-1.5">Then drag it onto the image to position.</span>
           </label>
 
           <div>
             <div className="flex items-center justify-between text-sm mb-1.5">
-              <span className="text-neutral-300">Opacity</span>
+              <span className="text-text/85">Opacity</span>
               <span className="text-muted">{Math.round(alpha * 100)}%</span>
             </div>
             <input
@@ -196,7 +196,7 @@ export function WatermarkStudio({ imageUrl }: { imageUrl: string }) {
 
           <div>
             <div className="flex items-center justify-between text-sm mb-1.5">
-              <span className="text-neutral-300">Size</span>
+              <span className="text-text/85">Size</span>
               <span className="text-muted">{Math.round(scale * 100)}%</span>
             </div>
             <input

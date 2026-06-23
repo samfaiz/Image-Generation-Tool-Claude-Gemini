@@ -3,23 +3,68 @@
 /*
   Tailwind v4 — CSS-first config. Tokens declared in @theme become utilities
   (e.g. --color-panel -> bg-panel / text-panel / border-panel).
-  This is a forced, minimalist, flat dark theme (no gradients/heavy shadows).
+
+  Two themes, switched via the data-theme attribute on <html>:
+    [data-theme="light"]  — WhatCampaign body palette  (white, navy text, royal blue)
+    [data-theme="dark"]   — WhatCampaign footer palette (deep navy, white text)
 */
 @theme {
-  --color-ink: #0a0a0b;        /* page background        */
-  --color-panel: #141416;      /* cards / surfaces       */
-  --color-elevated: #1c1c20;   /* inputs / hover         */
-  --color-line: #26262b;       /* hairline borders       */
-  --color-muted: #8a8a93;      /* secondary text         */
-  --color-accent: #6366f1;     /* indigo                 */
-  --color-accent-hover: #818cf8;
-  --color-success: #34d399;
-  --color-danger: #f87171;
+  /* Token NAMES — values come from the theme blocks below. Declaring them here
+     lets Tailwind v4 generate the utility classes (bg-ink, text-muted, etc.). */
+  --color-ink: var(--c-ink);
+  --color-panel: var(--c-panel);
+  --color-elevated: var(--c-elevated);
+  --color-line: var(--c-line);
+  --color-text: var(--c-text);
+  --color-muted: var(--c-muted);
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-soft: var(--c-accent-soft);
+  --color-success: var(--c-success);
+  --color-danger: var(--c-danger);
+  --color-on-accent: var(--c-on-accent);
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --radius: 0.75rem;
+}
+
+/* Light theme (default) — matches the WhatCampaign marketing site body. */
+:root,
+[data-theme="light"] {
+  --c-ink: #ffffff;            /* page background       */
+  --c-panel: #ffffff;          /* cards / surfaces      */
+  --c-elevated: #f4f5f7;       /* inputs / hover bg     */
+  --c-line: #e5e7eb;           /* hairline borders      */
+  --c-text: #0b1437;           /* primary text (navy)   */
+  --c-muted: #5f6478;          /* secondary text        */
+  --c-accent: #21449b;         /* brand royal blue      */
+  --c-accent-hover: #1a3680;
+  --c-accent-soft: #eef2ff;    /* light blue tint bg    */
+  --c-on-accent: #ffffff;      /* text on accent fills  */
+  --c-success: #16a34a;
+  --c-danger: #dc2626;
+
+  color-scheme: light;
+}
+
+/* Dark theme — inverse, matches the WhatCampaign footer block. */
+[data-theme="dark"] {
+  --c-ink: #0b1437;            /* deep navy background  */
+  --c-panel: #111c4a;          /* card surface          */
+  --c-elevated: #182356;       /* inputs / hover        */
+  --c-line: #22306e;           /* borders               */
+  --c-text: #ffffff;
+  --c-muted: #9ba3c5;
+  --c-accent: #4f6fe0;         /* lighter blue on dark  */
+  --c-accent-hover: #6b85e6;
+  --c-accent-soft: rgba(79, 111, 224, 0.16);
+  --c-on-accent: #ffffff;
+  --c-success: #34d399;
+  --c-danger: #f87171;
+
+  color-scheme: dark;
 }
 
 html,
@@ -28,14 +73,49 @@ body {
 }
 
 body {
-  background: var(--color-ink);
-  color: #e5e5e7;
+  background: var(--c-ink);
+  color: var(--c-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Thin, flat scrollbars to match the aesthetic */
+/* Headline helper — tight tracking + geometric feel like WhatCampaign. */
+.font-display {
+  letter-spacing: -0.025em;
+  font-feature-settings: "ss01" on, "cv01" on;
+}
+
+/* Decorative diagonal "W" watermark used on the studio + login hero areas.
+   Mimics the faint right-side mark on whatcampaign.com. */
+.bg-mesh {
+  position: relative;
+}
+.bg-mesh::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(115deg, transparent 60%, color-mix(in oklab, var(--c-accent) 5%, transparent) 60%, transparent 62%),
+    linear-gradient(115deg, transparent 70%, color-mix(in oklab, var(--c-accent) 4%, transparent) 70%, transparent 72%),
+    linear-gradient(115deg, transparent 80%, color-mix(in oklab, var(--c-accent) 3%, transparent) 80%, transparent 82%);
+  z-index: 0;
+}
+.bg-mesh > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Thin, flat scrollbars match the aesthetic in both themes. */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-line) transparent;
+  scrollbar-color: var(--c-line) transparent;
+}
+
+/* Subtle elevated card shadow — replaces the borderless dark cards. */
+.card-shadow {
+  box-shadow: 0 1px 2px rgba(11, 20, 55, 0.04), 0 4px 16px rgba(11, 20, 55, 0.04);
+}
+[data-theme="dark"] .card-shadow {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.25);
 }

@@ -26,7 +26,7 @@ function ModelSelect({
           value={value}
           disabled={saving}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-elevated border border-line rounded-lg px-3.5 py-2.5 text-sm text-neutral-100 focus:border-accent focus:outline-none disabled:opacity-50"
+          className="w-full bg-elevated border border-line rounded-lg px-3.5 py-2.5 text-sm text-text focus:border-accent focus:outline-none disabled:opacity-50"
         >
           <option value="" className="bg-panel">
             Auto (latest available)
@@ -86,9 +86,9 @@ export function ModelPreferences({
 
   return (
     <Card className="p-5 mt-5">
-      <h3 className="text-sm font-medium text-neutral-100 mb-1">Image models</h3>
+      <h3 className="text-sm font-medium text-text mb-1">Image models</h3>
       <p className="text-xs text-muted mb-4">
-        Choose which Gemini models to use, or leave on <span className="text-neutral-300">Auto</span> to
+        Choose which Gemini models to use, or leave on <span className="text-text/85">Auto</span> to
         always pick the newest available — new Google models appear here automatically.
       </p>
 

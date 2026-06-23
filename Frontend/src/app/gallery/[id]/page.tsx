@@ -14,7 +14,7 @@ function InfoRow({ label, value }: { label: string; value: string | null }) {
   return (
     <div className="flex gap-3 text-sm py-1.5 border-b border-line/60 last:border-0">
       <span className="text-muted w-32 shrink-0">{label}</span>
-      <span className="text-neutral-300">{value}</span>
+      <span className="text-text/85">{value}</span>
     </div>
   );
 }
@@ -75,7 +75,7 @@ export default function GenerationDetailPage() {
   return (
     <AppShell>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <Link href="/gallery" className="text-sm text-muted hover:text-white transition-colors">
+        <Link href="/gallery" className="text-sm text-muted hover:text-text transition-colors">
           ← Back to gallery
         </Link>
         {gen && (
@@ -119,7 +119,7 @@ export default function GenerationDetailPage() {
 
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="p-6">
-              <h3 className="text-sm font-medium text-neutral-100 mb-4">Inputs</h3>
+              <h3 className="text-sm font-medium text-text mb-4">Inputs</h3>
               <InfoRow label="Idea" value={gen.idea} />
               <InfoRow label="Industry" value={gen.industry} />
               <InfoRow label="Competitors" value={gen.competitors} />
@@ -131,7 +131,7 @@ export default function GenerationDetailPage() {
 
             {gen.claude_json && (
               <Card className="p-6">
-                <h3 className="text-sm font-medium text-neutral-100 mb-4">Prompt breakdown</h3>
+                <h3 className="text-sm font-medium text-text mb-4">Prompt breakdown</h3>
                 <PromptDetails json={gen.claude_json} />
               </Card>
             )}
