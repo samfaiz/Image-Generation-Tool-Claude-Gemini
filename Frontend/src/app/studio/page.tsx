@@ -249,6 +249,7 @@ export default function StudioPage() {
         template: d.template,
         style_tags: d.style_tags,
         mood_tags: d.mood_tags,
+        fields: d.fields, // KNOWN FACTS from structured briefing fields
       });
       setQuestions(qs);
       setPhase("clarifying");
@@ -396,7 +397,10 @@ export default function StudioPage() {
         <div className="max-w-3xl mx-auto">
           <BriefingStepIndicator phase={phase} />
           <h1 className="text-2xl font-semibold text-text mb-1">Refine your brief</h1>
-          <p className="text-muted text-sm mb-6">Claude generated these from your inputs — pick what fits.</p>
+          <p className="text-muted text-sm mb-6">
+            Claude read what you already filled in and tailored these questions to the gaps —
+            no generic prompts about things you&apos;ve already specified.
+          </p>
           {error && (
             <div className="mb-4">
               <Alert kind="error">{error}</Alert>

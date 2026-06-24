@@ -194,6 +194,25 @@ export type MarketInput = {
   mood_tags?: string[];
 };
 
+export type CompetitorsInput = {
+  industry: string;
+  product_context?: string;
+};
+
+export type OptimizeIdeaInput = {
+  idea: string;
+  industry?: string;
+  competitors?: string;
+  template?: string;
+  subcategory?: string;
+  fields?: Record<string, string>;
+};
+
+export type OptimizedIdea = {
+  optimized_idea: string;
+  improvements: string[];
+};
+
 export type ConceptSuggestion = {
   title: string;
   hook: string;
@@ -224,6 +243,10 @@ export type ClarifyInput = {
   template?: string;
   style_tags?: string[];
   mood_tags?: string[];
+  /** Structured fields already filled in the briefing, keyed by HUMAN LABEL
+   *  (e.g. "Brand primary color"). Claude reads these as KNOWN FACTS and skips
+   *  questions about anything already supplied. */
+  fields?: Record<string, string>;
 };
 
 // ---------------------------------------------------------------------------
@@ -267,6 +290,18 @@ export const api = {
   getModels: () => request<ModelCatalog>("/api/models"),
 
   // Generations
+  suggestCompetitors: (input: CompetitorsInput) =>
+    request<{ competitors: string[] }>("/api/generations/competitors", {
+      method: "POST",
+      body: input,
+    }),
+
+  optimizeIdea: (input: OptimizeIdeaInput) =>
+    request<OptimizedIdea>("/api/generations/optimize-idea", {
+      method: "POST",
+      body: input,
+    }),
+
   inspire: (input: InspireInput) =>
     request<{ suggestions: ConceptSuggestion[] }>("/api/generations/inspire", {
       method: "POST",

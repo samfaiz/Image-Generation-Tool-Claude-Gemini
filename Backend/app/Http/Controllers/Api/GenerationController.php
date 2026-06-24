@@ -40,6 +40,64 @@ class GenerationController extends Controller
     }
 
     /**
+     * Stateless: suggest 5–7 direct competitors based on the industry (+ optional
+     * product context). No web_search — Claude's training knowledge is fast and
+     * sufficient for common categories.
+     */
+    public function competitors(Request $request, AnthropicService $claude): JsonResponse
+    {
+        $data = $request->validate([
+            'industry' => ['required', 'string', 'max:255'],
+            'product_context' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $credential = $request->user()->credential;
+        if (! $credential || ! $credential->hasClaudeKey()) {
+            return response()->json(['message' => 'Add your Claude API key before suggesting competitors.'], 422);
+        }
+
+        try {
+            $competitors = $claude->suggestCompetitors($credential->claude_key, $data);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+
+        return response()->json(['competitors' => $competitors]);
+    }
+
+    /**
+     * Stateless: rewrite the user's draft idea text into a richer, more
+     * production-ready version with concrete visual specifics.
+     */
+    public function optimizeIdea(Request $request, AnthropicService $claude): JsonResponse
+    {
+        set_time_limit(120);
+
+        $data = $request->validate([
+            'idea' => ['required', 'string', 'max:8000'],
+            'industry' => ['nullable', 'string', 'max:255'],
+            'competitors' => ['nullable', 'string', 'max:1000'],
+            'template' => ['nullable', 'string', 'max:200'],
+            'subcategory' => ['nullable', 'string', 'max:200'],
+            'fields' => ['nullable', 'array'],
+            'fields.*' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $credential = $request->user()->credential;
+        if (! $credential || ! $credential->hasClaudeKey()) {
+            return response()->json(['message' => 'Add your Claude API key before optimizing.'], 422);
+        }
+
+        try {
+            $result = $claude->optimizeIdea($credential->claude_key, $data);
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 502);
+        }
+
+        return response()->json($result);
+    }
+
+    /**
      * Stateless: when the user doesn't know what to create, ask Claude (with web_search)
      * to research the company and return 4 diverse ready-to-run creative concepts.
      */
@@ -112,11 +170,16 @@ class GenerationController extends Controller
             'idea' => ['required', 'string', 'max:5000'],
             'industry' => ['nullable', 'string', 'max:255'],
             'competitors' => ['nullable', 'string', 'max:1000'],
-            'template' => ['nullable', 'string', 'max:100'],
+            'template' => ['nullable', 'string', 'max:200'],
             'style_tags' => ['nullable', 'array'],
             'style_tags.*' => ['string', 'max:50'],
             'mood_tags' => ['nullable', 'array'],
             'mood_tags.*' => ['string', 'max:50'],
+            // Structured fields the user has already filled in the briefing.
+            // Keyed by human-readable label (e.g. "Brand primary color") so Claude
+            // can read them directly without translating field IDs.
+            'fields' => ['nullable', 'array'],
+            'fields.*' => ['nullable', 'string', 'max:2000'],
         ]);
 
         $credential = $request->user()->credential;

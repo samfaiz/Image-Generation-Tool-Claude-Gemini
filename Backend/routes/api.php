@@ -30,6 +30,8 @@ Route::middleware(['auth:sanctum', 'track.active'])->group(function () {
 
     // Generations
     Route::get('/generations', [GenerationController::class, 'index']);
+    Route::post('/generations/competitors', [GenerationController::class, 'competitors']); // stateless competitor suggestions
+    Route::post('/generations/optimize-idea', [GenerationController::class, 'optimizeIdea']); // stateless idea polish
     Route::post('/generations/inspire', [GenerationController::class, 'inspire']);  // stateless concept suggestions
     Route::post('/generations/market', [GenerationController::class, 'market']);    // stateless market research
     Route::post('/generations/clarify', [GenerationController::class, 'clarify']);  // stateless brief refiner

@@ -312,67 +312,88 @@ class AnthropicService
     {
         return <<<'SYS'
         You help a user articulate a visual brief for an AI image-generation tool.
-        You are given their rough idea, optional industry/competitors, an optional template
-        (e.g. "Product launch hero", "Scroll-stopping social ad"), and optional style/mood tags.
+        You are given their rough idea plus a KNOWN FACTS section listing structured
+        fields the user has already filled (product name, launch type, brand colors,
+        headline copy, etc.) and the chosen template + variant.
 
-        Generate 3 TO 5 short, high-impact clarifying questions whose answers will most
+        Generate 2 TO 5 short, high-impact clarifying questions whose answers will most
         improve the final image. Each question MUST be multiple-choice with 3–5 concrete,
         mutually exclusive options (short noun phrases, 2–6 words each). The UI automatically
         adds a "Custom answer…" fallback to every question — do NOT include an "Other" option.
 
-        QUESTION COUNT
-        - 2–3 questions for simple briefs (single lifestyle photo, single mascot pose).
-        - 4–5 questions for MARKETING briefs (banner / social ad / launch / hero / promo)
-          where brand context, on-image copy, and CTA copy are critical to a good output.
+        ===================== CRITICAL: SKIP THE KNOWN =====================
 
-        QUESTION PRIORITIES BY TEMPLATE TYPE
+        Look carefully at KNOWN FACTS before writing any question. NEVER ask about anything
+        the user has ALREADY supplied. Examples:
+        - If KNOWN FACTS contains "Brand primary color: deep royal blue #21449B" → do NOT
+          ask about palette / brand colors. The user told you.
+        - If KNOWN FACTS contains "Headline copy: Campaign Planning, Simplified." → do NOT
+          ask about headline copy.
+        - If KNOWN FACTS contains "Launch type: Software / SaaS" → do NOT ask whether to
+          render a UI mock-up or a physical product.
+        - If KNOWN FACTS contains "Logo placement: top-left" → do NOT ask about logo placement.
+
+        If 4+ default questions for the template are already answered in KNOWN FACTS, return
+        only 2–3 questions about the REMAINING gaps. If almost everything is known, return
+        2 sharp questions about subtle creative direction (e.g. "Visual energy", "Headline
+        weight emphasis", "Background depth treatment") — never repeat what's known.
+
+        ===================== QUESTION PRIORITIES BY GAP =====================
+
+        Pick the highest-impact GAP topics from these lists, but ONLY if they aren't covered
+        in KNOWN FACTS already.
 
           MARKETING (banner / social ad / hero / launch / email header):
-            Ask for these (in order of impact). Pick the 4–5 most missing:
-            1. brand_palette — concrete palette directions like "deep royal blue + cyan",
-               "warm coral + cream", "monochrome charcoal + lime", "muted earth + ochre".
-            2. headline_copy — give 3–4 short candidate headlines (3–6 words each) tied
-               to the brief. Example for an AI Ad-Ops launch: "Campaign Planning, Simplified.",
-               "Ads That Actually Work.", "AI-Native Ad Operations.", "Launch Smarter Campaigns.".
-            3. cta_copy — common CTA labels: "Get Early Access", "Start Free Trial",
-               "See Demo", "Join the Waitlist".
-            4. motif_vibe — "glassmorphism + data viz", "geometric particles + nodes",
-               "soft gradient mesh", "photographic + minimal UI".
-            5. typography_feel — "modern geometric sans (Inter/Satoshi)", "elegant serif",
-               "humanist sans (Söhne/GT America)", "techy mono accent".
+            - brand_palette (only if not in KNOWN FACTS): concrete palette directions like
+              "deep royal blue + cyan", "warm coral + cream", "monochrome charcoal + lime".
+            - headline_copy (only if not in KNOWN FACTS): 3–4 short candidate headlines
+              tied to the brief.
+            - sub_text_copy (only if not in KNOWN FACTS): supporting line candidates.
+            - cta_copy (only if not in KNOWN FACTS): "Get Early Access", "Start Free Trial",
+              "See Demo", "Join the Waitlist".
+            - motif_vibe: "glassmorphism + data viz", "geometric particles + nodes",
+              "soft gradient mesh", "photographic + minimal UI".
+            - typography_feel: "modern geometric sans (Inter/Satoshi)", "elegant serif",
+              "humanist sans", "techy mono accent".
+            - visual_energy: "calm + spacious", "confident + grounded", "energetic + tight",
+              "moody + cinematic".
 
           PRODUCT / PHOTOGRAPHY:
-            1. background — "seamless studio paper", "in-context lifestyle", "abstract
-               gradient", "moody dark backdrop".
-            2. lighting_mood — "high-key bright", "dramatic single source", "golden-hour
-               warm", "soft overcast diffuse".
-            3. composition — "centered hero", "rule-of-thirds with negative space",
-               "macro close-up", "low-angle dramatic".
-            4. palette_direction (if not implied by tags).
+            - background (only if not specified): "seamless studio paper", "in-context
+              lifestyle", "abstract gradient", "moody dark backdrop".
+            - lighting_mood: "high-key bright", "dramatic single source", "golden-hour warm",
+              "soft overcast diffuse".
+            - composition: "centered hero", "rule-of-thirds with negative space",
+              "macro close-up", "low-angle dramatic".
+            - secondary_element: "single hero only", "with hand interacting",
+              "with subtle environment", "with stylized prop".
 
           MASCOT / ILLUSTRATION:
-            1. pose — "three-quarter portrait", "full-body action", "sticker silhouette",
-               "sitting friendly pose".
-            2. rendering_style — "cel-shaded flat vector", "soft 3D render", "hand-painted
-               gouache", "minimal line-art".
-            3. personality_cue — "warm and friendly", "cheeky and playful", "calm and
-               focused", "energetic and bold".
-            4. palette_anchor (brand hue family).
+            - pose (only if not specified): "three-quarter portrait", "full-body action",
+              "sticker silhouette", "sitting friendly pose".
+            - rendering_style (only if not in KNOWN FACTS): "cel-shaded flat vector",
+              "soft 3D render", "hand-painted gouache", "minimal line-art".
+            - personality_cue (only if not in KNOWN FACTS).
+            - background_treatment: "solid brand color", "soft gradient", "scene context",
+              "transparent for stickers".
 
           LIFESTYLE / EDITORIAL:
-            1. setting — "urban street", "minimal home interior", "outdoor nature",
-               "café/workspace".
-            2. time_of_day — "golden hour", "blue hour", "overcast diffuse", "bright midday".
-            3. people_presence — "no people", "hands only", "candid subject", "group scene".
+            - setting (only if not specified).
+            - time_of_day (only if not specified).
+            - people_presence (only if not specified): "no people", "hands only", "candid
+              subject", "group scene".
+            - storytelling_angle: "the work itself", "the maker", "the customer's moment",
+              "the team behind it".
 
         STRICT OUTPUT RULES
-        - `id` is short snake_case (e.g. "headline_copy", "brand_palette").
-        - `question` is a single sentence ending in "?".
-        - `options` are short noun phrases. For headline_copy and cta_copy, the OPTIONS
-          themselves should be candidate text strings (the user will likely use Custom to
-          write their own anyway, but options give them a head start).
-        - Don't ask for things already supplied in the brief or implied by the template
-          and style tags. Skip a default question and add a sharper one if you can.
+        - `id` is short snake_case (e.g. "headline_copy", "visual_energy").
+        - `question` is a single sentence ending in "?". Reference the user's specifics
+          when possible (e.g. "For your WhatCampaign hero, which background depth feels
+          right?" instead of "Which background?").
+        - `options` are short noun phrases (2–6 words). For copy-suggestion questions,
+          OPTIONS may be candidate text strings (the user will likely Custom anyway, but
+          options give them a head start).
+        - Quality > quantity. Better to return 2 sharp, on-target questions than 5 generic ones.
 
         Return ONLY the structured JSON matching the schema.
         SYS;
@@ -401,6 +422,21 @@ class AnthropicService
         }
         if (! empty($inputs['mood_tags'])) {
             $lines[] = 'MOOD TAGS: '.implode(', ', $inputs['mood_tags']);
+        }
+
+        // The "KNOWN FACTS" section lists structured fields the user has already filled
+        // (passed in as a label → value map). Claude is instructed to skip asking about
+        // anything in this list.
+        if (! empty($inputs['fields']) && is_array($inputs['fields'])) {
+            $lines[] = '';
+            $lines[] = 'KNOWN FACTS (do NOT ask about anything listed here — the user already supplied it):';
+            foreach ($inputs['fields'] as $label => $value) {
+                $v = trim((string) $value);
+                if ($v === '' || $v === '—') {
+                    continue;
+                }
+                $lines[] = '- '.$label.': '.$v;
+            }
         }
 
         $response = $this->postWithRetry($apiKey, 60, [
@@ -575,6 +611,205 @@ class AnthropicService
         }
 
         return $out;
+    }
+
+    private function competitorsSystemPrompt(): string
+    {
+        return <<<'SYS'
+        You name real competitors in a market. Given an industry (and optional product
+        context), return 5 to 7 well-known direct competitors a marketing brief should
+        differentiate from. Use your training knowledge — do not fabricate.
+
+        Rules:
+        - Real, recognizable companies/products only. No invented names.
+        - Prefer direct competitors over adjacent categories. If the industry is very narrow,
+          fewer than 5 is fine.
+        - Skip the user's own company if it's named in the product context.
+        - One company name per item, no descriptions, no parentheticals, no URLs.
+
+        Output ONLY a JSON code block:
+        ```json
+        {"competitors": ["Brand A", "Brand B", "Brand C", "Brand D", "Brand E"]}
+        ```
+        SYS;
+    }
+
+    /**
+     * Suggest 5–7 real direct competitors given an industry + optional product context.
+     *
+     * @param  array{industry:string,product_context?:?string}  $inputs
+     * @return array<int, string>
+     */
+    public function suggestCompetitors(string $apiKey, array $inputs): array
+    {
+        $lines = ['INDUSTRY: '.$inputs['industry']];
+        if (! empty($inputs['product_context'])) {
+            $lines[] = 'PRODUCT CONTEXT: '.$inputs['product_context'];
+        }
+
+        $response = Http::withHeaders([
+            'x-api-key' => $apiKey,
+            'anthropic-version' => config('services.anthropic.version'),
+            'content-type' => 'application/json',
+        ])->timeout(45)->post(config('services.anthropic.base_url').'/v1/messages', [
+            'model' => config('services.anthropic.model'),
+            'max_tokens' => 512,
+            'system' => $this->competitorsSystemPrompt(),
+            'messages' => [
+                ['role' => 'user', 'content' => implode("\n", $lines)],
+            ],
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException($this->describeFailure($response));
+        }
+
+        $body = $response->json();
+        if (($body['stop_reason'] ?? null) === 'refusal') {
+            throw new RuntimeException('Claude declined to suggest competitors.');
+        }
+
+        $text = '';
+        foreach ($body['content'] ?? [] as $block) {
+            if (($block['type'] ?? null) === 'text' && ! empty($block['text'])) {
+                $text .= $block['text']."\n";
+            }
+        }
+
+        $data = $this->extractJson($text);
+        if (! is_array($data) || ! is_array($data['competitors'] ?? null) || empty($data['competitors'])) {
+            throw new RuntimeException('Claude returned no competitor suggestions.');
+        }
+
+        // Normalize: trim, drop empties + duplicates (case-insensitive), cap at 7.
+        $seen = [];
+        $out = [];
+        foreach ($data['competitors'] as $c) {
+            $name = trim((string) $c);
+            if ($name === '') {
+                continue;
+            }
+            $key = strtolower($name);
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $out[] = $name;
+            if (count($out) >= 7) {
+                break;
+            }
+        }
+
+        return $out;
+    }
+
+    private function optimizeIdeaSystemPrompt(): string
+    {
+        return <<<'SYS'
+        You are a senior visual prompt engineer. The user has drafted a creative brief that
+        will be sent to an AI image-generation tool. Your job: rewrite their idea text so it
+        is more concrete, more visually specific, and more production-ready — WITHOUT
+        changing the user's intent, subject, deliverable, or constraints.
+
+        Rules for the rewrite:
+        - Keep the same subject, audience, deliverable type, and any constraints the user wrote.
+        - Add concrete visual specifics where the original is vague:
+          • Lighting: name a Kelvin temperature and direction (e.g. "warm 3200K key light from camera-right").
+          • Lens: name a focal length + f-stop for photographic styles (e.g. "85mm at f/4").
+          • Typography: name a family or style (e.g. "Inter or Satoshi", "elegant serif Tiempos").
+          • Colors: use hex codes when colors are named in the brief.
+          • Motif vocabulary appropriate to the category (data lines / glassmorphism for SaaS,
+            tactile materials for consumer, monospace tokens for dev tools, etc.).
+        - Quote any on-image copy LITERALLY in double-quotes.
+        - One natural-language paragraph, 120–200 words. No lists, no meta commentary,
+          no phrases like "create an image of" or "this image shows".
+        - Respect any aspect ratio the user mentioned; mention it once near the end.
+        - Brand-safe — never invent real logos or trademarked text.
+
+        Also surface 2–4 short "improvements" bullets — what you added or sharpened compared
+        to the original. Each bullet is one short phrase (e.g. "Named 85mm f/4 lens",
+        "Added #21449B hex code", "Quoted headline copy", "Specified Inter typography").
+
+        Output format — return ONLY a single JSON code block, no other text:
+        ```json
+        {
+          "optimized_idea": "…one rich paragraph…",
+          "improvements": ["…", "…", "…"]
+        }
+        ```
+        SYS;
+    }
+
+    /**
+     * Rewrite the user's draft idea text into a more concrete, production-ready paragraph.
+     *
+     * @param  array{idea:string,industry?:?string,competitors?:?string,template?:?string,subcategory?:?string,fields?:?array<string,string>}  $inputs
+     * @return array{optimized_idea:string,improvements:array<int,string>}
+     */
+    public function optimizeIdea(string $apiKey, array $inputs): array
+    {
+        $lines = ['CURRENT IDEA DRAFT:', $inputs['idea'], '', 'CONTEXT:'];
+        if (! empty($inputs['template'])) {
+            $lines[] = '- Template: '.$inputs['template'];
+        }
+        if (! empty($inputs['subcategory'])) {
+            $lines[] = '- Variant: '.$inputs['subcategory'];
+        }
+        if (! empty($inputs['industry'])) {
+            $lines[] = '- Industry: '.$inputs['industry'];
+        }
+        if (! empty($inputs['competitors'])) {
+            $lines[] = '- Competitors: '.$inputs['competitors'];
+        }
+        if (! empty($inputs['fields']) && is_array($inputs['fields'])) {
+            $lines[] = '- Structured fields:';
+            foreach ($inputs['fields'] as $k => $v) {
+                if ($v !== '' && $v !== null) {
+                    $lines[] = '    • '.$k.': '.$v;
+                }
+            }
+        }
+
+        $response = Http::withHeaders([
+            'x-api-key' => $apiKey,
+            'anthropic-version' => config('services.anthropic.version'),
+            'content-type' => 'application/json',
+        ])->timeout(90)->post(config('services.anthropic.base_url').'/v1/messages', [
+            'model' => config('services.anthropic.model'),
+            'max_tokens' => 2048,
+            'system' => $this->optimizeIdeaSystemPrompt(),
+            'messages' => [
+                ['role' => 'user', 'content' => implode("\n", $lines)],
+            ],
+        ]);
+
+        if (! $response->successful()) {
+            throw new RuntimeException($this->describeFailure($response));
+        }
+
+        $body = $response->json();
+        if (($body['stop_reason'] ?? null) === 'refusal') {
+            throw new RuntimeException('Claude declined to optimize the idea.');
+        }
+
+        $text = '';
+        foreach ($body['content'] ?? [] as $block) {
+            if (($block['type'] ?? null) === 'text' && ! empty($block['text'])) {
+                $text .= $block['text']."\n";
+            }
+        }
+
+        $data = $this->extractJson($text);
+        if (! is_array($data) || empty($data['optimized_idea'])) {
+            throw new RuntimeException('Claude returned an unparseable optimization.');
+        }
+
+        return [
+            'optimized_idea' => (string) $data['optimized_idea'],
+            'improvements' => is_array($data['improvements'] ?? null)
+                ? array_values(array_filter(array_map('strval', $data['improvements'])))
+                : [],
+        ];
     }
 
     private function marketSystemPrompt(): string
